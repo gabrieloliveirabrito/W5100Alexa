@@ -39,6 +39,7 @@ public:
 
     uint8_t getDeviceCount();
     uint8_t getDeviceId(const char *device_name);
+    EthernetAlexaDevice *getDevice(uint8_t id);
     uint8_t addDevice(EthernetAlexaDevice *device);
     void renameDevice(uint8_t id, const char *device_name);
 };

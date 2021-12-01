@@ -23,7 +23,7 @@ void setup()
     Serial.println("Ethernet Shield initialized!");
 
     alexa.addDevice(&yellowLed);
-    alexa.setDiscoverable(false);
+    //alexa.setDiscoverable(false);
 
     pinMode(21, OUTPUT);
 }

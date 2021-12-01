@@ -118,6 +118,14 @@ public:
 
             request.setMethod(method);
             request.setPath(path);
+            request.setBody(requestBody);
+
+            Serial.print("Method: ");
+            Serial.print(method);
+            Serial.print(" - ");
+            Serial.println(path);
+            Serial.print("BODY: ");
+            Serial.println(requestBody);
 
             bool found = false;
             for (int i = 0; i < callbackCount; i++)
@@ -148,6 +156,13 @@ public:
             client.println("Connection: close");
 
             const char *body = response.getBody();
+            if (body == nullptr)
+                Serial.println("NULL BODY");
+            else if (strlen(body) == 0)
+                Serial.println("EMPTY BODY");
+            else
+                Serial.println(body);
+
             if (body != nullptr && strlen(body) > 0)
             {
                 client.print("Content-Length: ");
@@ -162,7 +177,7 @@ public:
             client.stop();
             Serial.println("Disconnected");
         }
-        delay(100);
+        delay(10);
     }
 
     int getPort()
@@ -178,59 +193,5 @@ public:
         callbacks[callbackCount++] = callback;
     }
 };
-
-/*if (strcmp(method, "GET") == 0)
-        {
-            if (strcmp(path, "/") == 0)
-            {
-                printHttpResponse(&client, "200 OK");
-                client.println("<html><head><title>Ethernet Alexa></title></head><body><h1>Welcome to EthernetAlexa HTTP Server</h1><br/>");
-                for (int i = 0; i < deviceCount; i++)
-                {
-                    EthernetAlexaDevice *device = devices[i];
-
-                    char buf[128];
-                    sprintf(buf, "<h1>ID: %d</h1><h1>Name: %s</h1><h1>Type: %s</h1><h1>Model ID: %s</h1><br/>", device->getId(), device->getName(), device->getType(), device->getModelId());
-
-                    client.println(buf);
-                }
-                client.println("</body></html>");
-            }
-            else if (strcmp(path, "/description.xml") == 0)
-            {
-                printHttpResponse(&client, "200 OK");
-                IPAddress localIP = Ethernet.localIP();
-
-                char s[16];
-                sprintf(s, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
-
-                char buf[1024];
-                sprintf_P(buf, DESCRIPTION_XML, s, s, escapedMac, escapedMac);
-
-                client.println(buf);
-            }
-            else if (strncmp(path, "/api/lights/", 12) == 0)
-            {
-                Serial.println("API Call");
-                int id = atoi(path + 12);
-
-                printHttpResponse(&client, "200 OK");
-            }
-            else
-            {
-                Serial.println(path);
-                printHttpResponse(&client, "404 Not Found");
-                if (strlen(requestBody) > 0)
-                    client.println(requestBody);
-            }
-        }
-        else
-        {
-            Serial.println(path);
-            printHttpResponse(&client, "400 Bad Request");
-            if (strlen(requestBody) > 0)
-                client.println(requestBody);
-        }
-*/
 
 #endif

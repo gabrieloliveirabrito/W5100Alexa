@@ -1,6 +1,9 @@
 #ifndef ETHERNET_ALEXA_TEMPLATE
 #define ETHERNET_ALEXA_TEMPLATE
 
+//Very thanks for vintlabs for fauxmoESP
+//Visit: https://github.com/vintlabs/fauxmoESP
+
 PROGMEM const char HTTP_HEADERS[] = "HTTP/1.1 200 OK\r\n"
                                     "EXT:\r\n"
                                     "CACHE-CONTROL: max-age=100\r\n" // SSDP_INTERVAL
@@ -29,4 +32,42 @@ PROGMEM const char DESCRIPTION_XML[] = "<?xml version=\"1.0\" ?>"
                                        "<presentationURL>index.html</presentationURL>"
                                        "</device>"
                                        "</root>";
+
+PROGMEM const char DEVICE_JSON_TEMPLATE[] = "{"
+                                            "\"type\": \"Extended color light\","
+                                            "\"name\": \"%s\","
+                                            "\"uniqueid\": \"%s\","
+                                            "\"modelid\": \"LCT015\","
+                                            "\"manufacturername\": \"Philips\","
+                                            "\"productname\": \"E4\","
+                                            "\"state\":{"
+                                            "\"on\": %s,"
+                                            "\"bri\": %d,"
+                                            "\"xy\": [0,0],"
+                                            "\"hue\": 0,"
+                                            "\"sat\": 0,"
+                                            "\"effect\": \"none\","
+                                            "\"colormode\": \"xy\","
+                                            "\"ct\": 500,"
+                                            "\"mode\": \"homeautomation\","
+                                            "\"reachable\": true"
+                                            "},"
+                                            "\"capabilities\": {"
+                                            "\"certified\": false,"
+                                            "\"streaming\": {\"renderer\":true,\"proxy\":false}"
+                                            "},"
+                                            "\"swversion\": \"5.105.0.21169\""
+                                            "}";
+
+PROGMEM const char DEVICE_SHORT_JSON_TEMPLATE[] = "{"
+                                                  "\"type\": \"Extended color light\","
+                                                  "\"name\": \"%s\","
+                                                  "\"uniqueid\": \"%s\""
+                                                  "\"state\":{"
+                                                  "\"on\": %s,"
+                                                  "\"mode\": \"homeautomation\","
+                                                  "\"reachable\": true"
+                                                  "},"
+                                                  "}";
+
 #endif

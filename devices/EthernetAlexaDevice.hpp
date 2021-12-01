@@ -39,6 +39,7 @@ public:
 
     virtual const char *getType() = 0;
     virtual const char *getModelId() = 0;
+    virtual const char *getJson() = 0;
     virtual void doCallback() = 0;
 };
 

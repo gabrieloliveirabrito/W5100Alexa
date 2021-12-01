@@ -18,6 +18,19 @@ public:
         this->value = value;
     }
 
+    ~HTTPHeader()
+    {
+        dispose();
+    }
+
+    void dispose()
+    {
+        if (name != nullptr)
+            delete name;
+        if (value != nullptr)
+            delete value;
+    }
+
     const char *getName()
     {
         return name;

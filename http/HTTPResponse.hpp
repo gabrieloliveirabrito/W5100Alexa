@@ -27,6 +27,22 @@ public:
         setHeader("Content-Type", "text/plain");
     }
 
+    ~HTTPResponse()
+    {
+        dispose();
+    }
+
+    void dispose()
+    {
+        if (headers != nullptr && headerCount > 0)
+            for (int i = 0; i < headerCount; i++)
+                headers[i].dispose();
+        headerCount = 0;
+
+        if (body != nullptr)
+            delete body;
+    }
+
     int getHeaderCount()
     {
         return headerCount;

@@ -16,7 +16,8 @@ bool EthernetAlexa::begin()
     http = new HTTPServer();
     http->addHttpCallback(new HTTPIndexCallback(this));
     http->addHttpCallback(new DescriptionXMLCallback(this));
-    http->addHttpCallback(new APICallback(this));
+    http->addHttpCallback(new APILightsCallback(this));
+    http->addHttpCallback(new APIControlsCallback(this));
     http->begin();
 
     udp = new EthernetUDP();
@@ -45,10 +46,15 @@ void EthernetAlexa::loop()
         return;
 
     const char *request = (const char *)packetBuffer;
+    //Serial.println(request);
+
     if (strstr(request, "M-SEARCH") == nullptr)
         return;
 
-    if (strstr(request, "ssdp:discover") != nullptr || strstr(request, "upnp:rootdevice") != nullptr || strstr(request, "device:basic:1") != nullptr)
+    if (strstr(request, "ssdp:discover") != nullptr || strstr(request, "upnp:rootdevice") != nullptr ||
+        strstr(request, "device:basic:1") != nullptr || strstr(request, "ssdp:disc") != nullptr ||
+        strstr(request, "upnp:rootd") != nullptr || strstr(request, "sspd:all") != nullptr ||
+        strstr(request, "asic:1") != nullptr)
     {
         Serial.println("Alexa Received!");
 
@@ -108,6 +114,14 @@ uint8_t EthernetAlexa::getDeviceId(const char *device_name)
             return i;
     }
     return -1;
+}
+
+EthernetAlexaDevice *EthernetAlexa::getDevice(uint8_t id)
+{
+    if (id < deviceCount)
+        return devices[id];
+    else
+        return nullptr;
 }
 
 uint8_t EthernetAlexa::addDevice(EthernetAlexaDevice *device)

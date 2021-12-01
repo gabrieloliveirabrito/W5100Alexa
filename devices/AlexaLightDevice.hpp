@@ -2,6 +2,7 @@
 #define ALEXA_LIGHT_DEVICE
 
 #include "EthernetAlexaDevice.hpp"
+#include "../templates.h"
 
 class AlexaLightDevice : public EthernetAlexaDevice
 {
@@ -46,6 +47,11 @@ public:
     const char *getModelId()
     {
         return "LWT010";
+    }
+
+    const char *getJson()
+    {
+        return "{\"ok\": true}";
     }
 
     void doCallback() {}

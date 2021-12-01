@@ -3,6 +3,7 @@
 
 #include "IndexCallback.hpp"
 #include "DescriptionXMLCallback.hpp"
-#include "APICallback.hpp"
+#include "APILightsCallback.hpp"
+#include "APIControlCallback.hpp"
 
 #endif

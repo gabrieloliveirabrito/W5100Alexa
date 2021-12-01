@@ -2,6 +2,7 @@
 #define ALEXA_STATE_DEVICE
 
 #include "EthernetAlexaDevice.hpp"
+#include "../templates.h"
 
 class AlexaStateDevice : public EthernetAlexaDevice
 {
@@ -35,6 +36,14 @@ public:
     const char *getModelId()
     {
         return "LWT010";
+    }
+
+    const char *getJson()
+    {
+        char buffer[strlen_P(DEVICE_JSON_TEMPLATE) + 64];
+        snprintf_P(buffer, sizeof(buffer), DEVICE_SHORT_JSON_TEMPLATE, getName(), getModelId(), state ? "true" : "false");
+
+        return buffer;
     }
 };
 

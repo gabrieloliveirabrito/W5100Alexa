@@ -6,9 +6,11 @@ void httpR(HTTPRequest request, HTTPResponse *response) {}
 
 bool EthernetAlexa::begin()
 {
+    pinMode(9, OUTPUT);
+
     ip = Ethernet.localIP();
     Ethernet.MACAddress(mac);
-    sprintf(escapedMac, "%x%x%x%x%x%x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    sprintf(escapedMac, "FD-%x%x%x%x%x%x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     for (int i = 0; i < sizeof(uint32_t); i++)
         mac24 |= mac[i] << i * 8;
@@ -31,47 +33,57 @@ void EthernetAlexa::loop()
     http->loop();
 
     if (!connected)
+    {
+        Serial.println("Not connected");
         return;
+    }
 
     int packetSize = udp->parsePacket();
-    if (packetSize < 1)
-        return;
-
-    unsigned char packetBuffer[packetSize + 1];
-    udp->read(packetBuffer, packetSize);
-    packetBuffer[packetSize] = 0;
-    udp->flush();
-
-    if (!discoverable)
-        return;
-
-    const char *request = (const char *)packetBuffer;
-    //Serial.println(request);
-
-    if (strstr(request, "M-SEARCH") == nullptr)
-        return;
-
-    if (strstr(request, "ssdp:discover") != nullptr || strstr(request, "upnp:rootdevice") != nullptr ||
-        strstr(request, "device:basic:1") != nullptr || strstr(request, "ssdp:disc") != nullptr ||
-        strstr(request, "upnp:rootd") != nullptr || strstr(request, "sspd:all") != nullptr ||
-        strstr(request, "asic:1") != nullptr)
+    if (packetSize > 0)
     {
-        Serial.println("Alexa Received!");
+        unsigned char packetBuffer[packetSize + 1];
+        udp->read(packetBuffer, packetSize);
+        packetBuffer[packetSize] = 0;
+        udp->flush();
 
-        char s[16];
-        sprintf(s, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+        if (!discoverable)
+        {
+            Serial.println("Alexa Not Discoverable");
+            return;
+        }
 
-        char buf[strlen(HTTP_HEADERS) + 128];
-        sprintf_P(buf, HTTP_HEADERS, s, escapedMac, escapedMac);
+        const char *request = (const char *)packetBuffer;
+        //Serial.println(request);
 
-        udp->beginPacket(udp->remoteIP(), udp->remotePort());
-        udp->write(buf);
-        udp->endPacket();
-    }
-    else
-    {
-        Serial.println("Invalid Packet");
-        Serial.println(request);
+        if (strstr(request, "M-SEARCH") != nullptr || strstr(request, "NOTIFY") != nullptr)
+        {
+
+            if (strstr(request, "ssdp:discover") != nullptr || strstr(request, "upnp:rootdevice") != nullptr ||
+                strstr(request, "device:basic:1") != nullptr || strstr(request, "ssdp:disc") != nullptr ||
+                strstr(request, "upnp:rootd") != nullptr || strstr(request, "sspd:all") != nullptr ||
+                strstr(request, "asic:1") != nullptr || strstr(request, "ssdp:alive") != nullptr)
+            {
+                digitalWrite(9, HIGH);
+
+                char s[16];
+                sprintf(s, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+
+                char buf[strlen(HTTP_HEADERS) + 128];
+                sprintf_P(buf, HTTP_HEADERS, s, http->getPort(), escapedMac, escapedMac);
+
+                udp->beginPacket(udp->remoteIP(), udp->remotePort());
+                udp->write(buf);
+                udp->endPacket();
+
+                delay(200);
+                digitalWrite(9, LOW);
+            }
+            else
+            {
+                Serial.println("Invalid Packet");
+                Serial.println(request);
+            }
+        }
     }
 }
 

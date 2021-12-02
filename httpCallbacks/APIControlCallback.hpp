@@ -33,7 +33,7 @@ public:
         if (body.indexOf("deviceType") > 0)
         {
             response->setStatusCode(OK);
-            response->setBody("[{\"success\":{\"username\":\"2WLEDHardQrI3WHYTHoMcXHgEspsM8ZZRpSKtBQr\"}}]");
+            response->setBody("[{\"success\":{\"username\":\"t4bK6SilLBy4DutQo0P8yORztUFrAf5-NDTi7wFq\"}}]");
         }
         else
         {

@@ -7,7 +7,7 @@
 PROGMEM const char HTTP_HEADERS[] = "HTTP/1.1 200 OK\r\n"
                                     "EXT:\r\n"
                                     "CACHE-CONTROL: max-age=100\r\n" // SSDP_INTERVAL
-                                    "LOCATION: http://%s:80/description.xml\r\n"
+                                    "LOCATION: http://%s:%d/description.xml\r\n"
                                     "SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/1.17.0\r\n" // _modelName, _modelNumber
                                     "hue-bridgeid: %s\r\n"
                                     "ST: urn:schemas-upnp-org:device:basic:1\r\n"               // _deviceType
@@ -29,7 +29,7 @@ PROGMEM const char DESCRIPTION_XML[] = "<?xml version=\"1.0\" ?>"
                                        "<modelURL>http://www.meethue.com</modelURL>"
                                        "<serialNumber>%s</serialNumber>"
                                        "<UDN>uuid:2f402f80-da50-11e1-9b23-%s</UDN>"
-                                       "<presentationURL>index.html</presentationURL>"
+                                       "<presentationURL>/</presentationURL>"
                                        "</device>"
                                        "</root>";
 

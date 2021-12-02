@@ -20,7 +20,7 @@ public:
 
     ~HTTPHeader()
     {
-        dispose();
+        //dispose();
     }
 
     void dispose()

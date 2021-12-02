@@ -29,7 +29,7 @@ public:
 
     ~HTTPResponse()
     {
-        dispose();
+        //dispose();
     }
 
     void dispose()

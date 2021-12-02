@@ -11,7 +11,7 @@ private:
 public:
     ~HTTPRequest()
     {
-        dispose();
+        //dispose();
     }
 
     void dispose()

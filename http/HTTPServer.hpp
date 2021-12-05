@@ -21,12 +21,13 @@ class HTTPServer
 private:
     EthernetServer *server;
     HTTPCallback *callbacks[HTTP_MAX_CALLBACKS];
+    HTTPRequest request;
+    HTTPResponse response;
     uint8_t callbackCount = 0;
 
     int port;
-    char requestHeader[HTTP_MAX_REQUEST];
     char requestBody[HTTP_MAX_BODY];
-    uint8_t requestReceived = 0, bodyReceived = 0;
+    uint8_t requestReceived = 0;
 
     const char *getStatusMessage(HTTPStatusCode code)
     {
@@ -48,93 +49,110 @@ public:
     HTTPServer(uint16_t port = 80)
     {
         this->port = port;
-
         this->server = new EthernetServer(port);
     }
 
     void begin()
     {
+        pinMode(7, OUTPUT);
+        digitalWrite(7, LOW);
         this->server->begin();
     }
 
     void loop()
     {
         EthernetClient client = server->available();
-        bool lb = true, body = false;
+        bool lb = true, body = false, method = true, path = false;
 
         if (client)
         {
-            HTTPRequest request;
-            HTTPResponse response;
+            digitalWrite(7, HIGH);
+
+            request.clear();
+            response.clear();
 
             requestReceived = 0;
-            bodyReceived = 0;
+            requestBody[0] = '\0';
 
             Serial.print("Client ");
             client.remoteIP().printTo(Serial);
             Serial.println(" connected!");
 
-            //Get the first header
-            do
-            {
-                requestHeader[requestReceived++] = client.read();
-            } while (requestHeader[requestReceived - 1] != '\n');
-            requestHeader[requestReceived] = '\0';
-
+            Serial.println("-------- BEGIN OF REQUEST --------");
             while (client.available())
             {
                 char c = client.read();
+                Serial.print(c);
 
-                if (body)
-                    requestBody[bodyReceived++] = c;
-                else if (c == '\n' && lb)
-                    body = true;
+                if (method)
+                {
+                    if (isspace(c))
+                    {
+                        method = false;
+                        path = true;
+                        requestBody[requestReceived] = '\0';
+
+                        request.setMethod(requestBody);
+                        requestReceived = 0;
+                    }
+                    else
+                    {
+                        requestBody[requestReceived++] = c;
+                    }
+                }
+                else if (path)
+                {
+                    if (isspace(c))
+                    {
+                        path = false;
+                        requestBody[requestReceived] = '\0';
+
+                        request.setPath(requestBody);
+                        requestReceived = 0;
+                    }
+                    else
+                    {
+                        requestBody[requestReceived++] = c;
+                    }
+                }
+                else if (body)
+                {
+                    requestBody[requestReceived++] = c;
+                }
                 else if (c == '\n')
-                    lb = true;
+                {
+                    if (lb)
+                    {
+                        body = true;
+                    }
+                    else
+                    {
+                        lb = true;
+
+                        requestBody[requestReceived] = '\0';
+                        request.addHeader(requestBody);
+                    }
+                    requestReceived = 0;
+                }
                 else if (c != '\r')
+                {
+                    requestBody[requestReceived++] = c;
                     lb = false;
+                }
             }
-            requestBody[bodyReceived] = '\0';
-
-            int pos = 0;
-            char method[7];
-            while (!isspace(requestHeader[pos]))
-            {
-                method[pos] = requestHeader[pos];
-                pos++;
-            }
-            method[pos] = '\0';
-
-            int methodPos = pos + 1;
-            pos = 0;
-
-            char path[56];
-            while (!isspace(requestHeader[methodPos + pos]))
-            {
-                path[pos] = requestHeader[methodPos + pos];
-                pos++;
-            }
-            path[pos] = '\0';
-
-            request.setMethod(method);
-            request.setPath(path);
-            request.setBody(requestBody);
-
-            Serial.print("Method: ");
-            Serial.print(method);
-            Serial.print(" - ");
-            Serial.println(path);
-            Serial.print("BODY: ");
-            Serial.println(requestBody);
+            Serial.println("-------- FINAL OF REQUEST --------");
 
             bool found = false;
             for (int i = 0; i < callbackCount; i++)
             {
                 HTTPCallback *callback = callbacks[i];
-                if (callback != nullptr && callback->compare(method, path))
+                if (callback != nullptr && callback->compare(request))
                 {
-                    found = true;
-                    callback->execute(request, &response);
+                    //     Serial.println("Found!");
+                    //     found = true;
+                    //     //callback->execute(request, response);
+
+                    //     Serial.println(response.getStatusCode(), DEC);
                     break;
                 }
             }
@@ -146,6 +164,7 @@ public:
             client.print("HTTP/1.1 ");
             client.println(statusMessage);
 
+            Serial.println(response.getHeaderCount(), DEC);
             for (int i = 0, n = response.getHeaderCount(); i < n; i++)
             {
                 HTTPHeader *header = response.getHeader(i);
@@ -156,13 +175,6 @@ public:
             client.println("Connection: close");
 
             const char *body = response.getBody();
-            if (body == nullptr)
-                Serial.println("NULL BODY");
-            else if (strlen(body) == 0)
-                Serial.println("EMPTY BODY");
-            else
-                Serial.println(body);
-
             if (body != nullptr && strlen(body) > 0)
             {
                 client.print("Content-Length: ");
@@ -176,6 +188,7 @@ public:
             delay(1);
             client.stop();
             Serial.println("Disconnected");
+            digitalWrite(7, LOW);
         }
         delay(10);
     }

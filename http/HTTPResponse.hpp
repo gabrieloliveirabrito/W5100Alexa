@@ -6,7 +6,7 @@
 #endif
 
 #ifndef ALEXA_MAX_BODY_LENGTH
-#define ALEXA_MAX_BODY_LENGTH 512
+#define ALEXA_MAX_BODY_LENGTH 256
 #endif
 
 #include "HTTPHeader.hpp"
@@ -17,30 +17,21 @@ class HTTPResponse
 private:
     HTTPHeader headers[ALEXA_MAX_RESPONSE_HEADERS];
     int headerCount = 0;
-    const char *body;
+    char body[ALEXA_MAX_BODY_SIZE];
     HTTPStatusCode statusCode;
 
 public:
     HTTPResponse()
     {
-        body = nullptr;
-        setHeader("Content-Type", "text/plain");
+        clear();
+        //setHeader("Content-Type", "text/plain");
     }
 
-    ~HTTPResponse()
+    void clear()
     {
-        //dispose();
-    }
-
-    void dispose()
-    {
-        if (headers != nullptr && headerCount > 0)
-            for (int i = 0; i < headerCount; i++)
-                headers[i].dispose();
+        body[0] = '\0';
         headerCount = 0;
-
-        if (body != nullptr)
-            delete body;
+        statusCode = NotImplemented;
     }
 
     int getHeaderCount()
@@ -100,7 +91,7 @@ public:
 
     void setBody(const char *body)
     {
-        this->body = body;
+        strncpy(this->body, body, ALEXA_MAX_BODY_LENGTH);
     }
 
     HTTPStatusCode getStatusCode()

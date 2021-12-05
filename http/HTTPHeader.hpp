@@ -1,34 +1,41 @@
 #ifndef ALEXA_HTTP_HEADER
 #define ALEXA_HTTP_HEADER
 
+#ifndef ALEXA_HTTP_HEADER_NAME_SIZE
+#define ALEXA_HTTP_HEADER_NAME_SIZE 32
+#endif
+
+#ifndef ALEXA_HTTP_HEADER_VALUE_SIZE
+#define ALEXA_HTTP_HEADER_VALUE_SIZE 128
+#endif
+
+#ifndef ALEXA_HTTP_HEADER_SIZE
+#define ALEXA_HTTP_HEADER_SIZE ALEXA_HTTP_HEADER_NAME_SIZE + ALEXA_HTTP_HEADER_VALUE_SIZE
+#endif
+
 class HTTPHeader
 {
 private:
-    const char *name;
-    const char *value;
+    char name[ALEXA_HTTP_HEADER_NAME_SIZE];
+    char value[ALEXA_HTTP_HEADER_VALUE_SIZE];
 
 public:
     HTTPHeader()
     {
+        clear();
     }
 
     HTTPHeader(const char *name, const char *value)
     {
-        this->name = name;
-        this->value = value;
+        // strncpy(this->name, name, ALEXA_HTTP_HEADER_NAME_SIZE);
+        // strncpy(this->value, value, ALEXA_HTTP_HEADER_VALUE_SIZE);
+        clear();
     }
 
-    ~HTTPHeader()
+    void clear()
     {
-        //dispose();
-    }
-
-    void dispose()
-    {
-        if (name != nullptr)
-            delete name;
-        if (value != nullptr)
-            delete value;
+        name[0] = '\0';
+        value[0] = '\0';
     }
 
     const char *getName()
@@ -38,7 +45,7 @@ public:
 
     void setName(const char *name)
     {
-        this->name = name;
+        //strncpy(this->name, name, ALEXA_HTTP_HEADER_NAME_SIZE);
     }
 
     const char *getValue()
@@ -48,7 +55,7 @@ public:
 
     void setValue(const char *value)
     {
-        this->value = value;
+        //strncpy(this->value, value, ALEXA_HTTP_HEADER_VALUE_SIZE);
     }
 };
 

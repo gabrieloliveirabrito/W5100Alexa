@@ -2,8 +2,6 @@
 #include "templates.h"
 #include "httpCallbacks/include.h"
 
-void httpR(HTTPRequest request, HTTPResponse *response) {}
-
 bool EthernetAlexa::begin()
 {
     pinMode(9, OUTPUT);
@@ -17,9 +15,9 @@ bool EthernetAlexa::begin()
 
     http = new HTTPServer();
     http->addHttpCallback(new HTTPIndexCallback(this));
-    http->addHttpCallback(new DescriptionXMLCallback(this));
-    http->addHttpCallback(new APILightsCallback(this));
-    http->addHttpCallback(new APIControlsCallback(this));
+    //http->addHttpCallback(new DescriptionXMLCallback(this));
+    // http->addHttpCallback(new APILightsCallback(this));
+    // http->addHttpCallback(new APIControlsCallback(this));
     http->begin();
 
     udp = new EthernetUDP();
@@ -58,10 +56,8 @@ void EthernetAlexa::loop()
         if (strstr(request, "M-SEARCH") != nullptr || strstr(request, "NOTIFY") != nullptr)
         {
 
-            if (strstr(request, "ssdp:discover") != nullptr || strstr(request, "upnp:rootdevice") != nullptr ||
-                strstr(request, "device:basic:1") != nullptr || strstr(request, "ssdp:disc") != nullptr ||
-                strstr(request, "upnp:rootd") != nullptr || strstr(request, "sspd:all") != nullptr ||
-                strstr(request, "asic:1") != nullptr || strstr(request, "ssdp:alive") != nullptr)
+            if (strstr(request, "ssdp:disc") != nullptr || strstr(request, "upnp:rootd") != nullptr ||
+                strstr(request, "sspd:all") != nullptr || strstr(request, "asic:1") != nullptr)
             {
                 digitalWrite(9, HIGH);
 
@@ -69,7 +65,7 @@ void EthernetAlexa::loop()
                 sprintf(s, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 
                 char buf[strlen(HTTP_HEADERS) + 128];
-                sprintf_P(buf, HTTP_HEADERS, s, http->getPort(), escapedMac, escapedMac);
+                sprintf_P(buf, HTTP_HEADERS, s, http->getPort(), s, http->getPort(), escapedMac, escapedMac);
 
                 udp->beginPacket(udp->remoteIP(), udp->remotePort());
                 udp->write(buf);
@@ -80,8 +76,8 @@ void EthernetAlexa::loop()
             }
             else
             {
-                Serial.println("Invalid Packet");
-                Serial.println(request);
+                //Serial.println("Invalid Packet");
+                //Serial.println(request);
             }
         }
     }

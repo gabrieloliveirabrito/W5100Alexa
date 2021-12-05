@@ -25,7 +25,7 @@ public:
         return "/api/lights";
     }
 
-    void execute(HTTPRequest request, HTTPResponse *response)
+    void execute(HTTPRequest request, HTTPResponse &response)
     {
         int id = atoi(request.getPath() + 12);
         String url = String(request.getPath());
@@ -33,7 +33,7 @@ public:
         int pos = url.indexOf("");
         if (pos == -1)
         {
-            response->setStatusCode(NotFound);
+            response.setStatusCode(NotFound);
         }
         else
         {
@@ -45,24 +45,24 @@ public:
                 for (uint8_t i = 0, n = alexa->getDeviceCount(); i < n; i++)
                 {
                     EthernetAlexaDevice *device = alexa->getDevice(i);
-                    response->setBody(device->getJson());
+                    response.setBody(device->getJson());
                 }
             }
             else
             {
                 EthernetAlexaDevice *device = alexa->getDevice(id - 1);
-                response->setBody(device->getJson());
+                response.setBody(device->getJson());
             }
 
-            response->setHeader("Content-Type", "application/json");
-            response->setStatusCode(OK);
+            response.setHeader("Content-Type", "application/json");
+            response.setStatusCode(OK);
         }
     }
 
-    bool compare(const char *method, const char *path)
+    bool compare(HTTPRequest request)
     {
         const char *p = getPath();
-        return strcmp(getMethod(), method) == 0 && strncmp(path, p, strlen(p)) == 0;
+        return strcmp(getMethod(), request.getMethod()) == 0 && strncmp(request.getPath(), p, strlen(p)) == 0;
     }
 };
 

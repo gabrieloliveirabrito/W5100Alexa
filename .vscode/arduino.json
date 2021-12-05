@@ -3,5 +3,6 @@
     "board": "arduino:avr:mega",
     "programmer": "arduino:arduinoisp",
     "port": "COM5",
-    "sketch": "W5100Alexa.ino"
+    "sketch": "W5100Alexa.ino",
+    "output": "../ArduinoCache"
 }

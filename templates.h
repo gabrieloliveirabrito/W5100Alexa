@@ -6,6 +6,7 @@
 
 PROGMEM const char HTTP_HEADERS[] = "HTTP/1.1 200 OK\r\n"
                                     "EXT:\r\n"
+                                    "HOST: %s:%d"
                                     "CACHE-CONTROL: max-age=100\r\n" // SSDP_INTERVAL
                                     "LOCATION: http://%s:%d/description.xml\r\n"
                                     "SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/1.17.0\r\n" // _modelName, _modelNumber

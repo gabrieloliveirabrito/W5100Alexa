@@ -23,7 +23,7 @@ void setup()
     Serial.println("Ethernet Shield initialized!");
 
     alexa.addDevice(&yellowLed);
-    //alexa.setDiscoverable(false);
+    alexa.setDiscoverable(false);
 
     pinMode(21, OUTPUT);
 }
@@ -31,7 +31,17 @@ void setup()
 unsigned char state = LOW;
 void loop()
 {
-    if (!alexa.isConnected())
+    if (Ethernet.hardwareStatus() == EthernetNoHardware)
+    {
+        Serial.println("No Ethernet Hardware has been found!");
+        delay(10000);
+    }
+    else if (Ethernet.linkStatus() == LinkOFF)
+    {
+        Serial.println("Ethernet has been disconnected, trying to reconnect...");
+        delay(10000);
+    }
+    else if (!alexa.isConnected())
     {
         Serial.println("Waiting for Alexa...");
         while (1)
@@ -44,7 +54,7 @@ void loop()
             else
             {
                 Serial.println("Failed to connect to Alexa!");
-                delay(10000);
+                delay(1000);
             }
         }
     }

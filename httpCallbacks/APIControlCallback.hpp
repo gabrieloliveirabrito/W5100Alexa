@@ -25,26 +25,26 @@ public:
         return "/api/";
     }
 
-    void execute(HTTPRequest request, HTTPResponse *response)
+    void execute(HTTPRequest request, HTTPResponse &response)
     {
         String body = String(request.getBody());
 
-        response->setHeader("Content-Type", "application/json");
+        response.setHeader("Content-Type", "application/json");
         if (body.indexOf("deviceType") > 0)
         {
-            response->setStatusCode(OK);
-            response->setBody("[{\"success\":{\"username\":\"t4bK6SilLBy4DutQo0P8yORztUFrAf5-NDTi7wFq\"}}]");
+            response.setStatusCode(OK);
+            response.setBody("[{\"success\":{\"username\":\"t4bK6SilLBy4DutQo0P8yORztUFrAf5-NDTi7wFq\"}}]");
         }
         else
         {
-            response->setStatusCode(NotFound);
+            response.setStatusCode(NotFound);
         }
     }
 
-    bool compare(const char *method, const char *path)
+    bool compare(HTTPRequest request)
     {
-        Serial.println(strncmp(path, getPath(), 4) == 0 ? "true" : "false");
-        return strncmp(path, getPath(), 4) == 0;
+        Serial.println(strncmp(request.getPath(), getPath(), 4) == 0 ? "true" : "false");
+        return strncmp(request.getPath(), getPath(), 4) == 0;
     }
 };
 

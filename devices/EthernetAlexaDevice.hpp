@@ -1,16 +1,20 @@
 #ifndef ETHERNET_ALEXA_DEVICE
 #define ETHERNET_ALEXA_DEVICE
 
+#ifndef ALEXA_DEVICE_NAME_SIZE
+#define ALEXA_DEVICE_NAME_SIZE 30
+#endif
+
 class EthernetAlexaDevice
 {
 private:
-    const char *name;
+    char name[ALEXA_DEVICE_NAME_SIZE];
     uint8_t id;
 
 public:
     EthernetAlexaDevice(const char *name)
     {
-        this->name = name;
+        strncpy(this->name, name, ALEXA_DEVICE_NAME_SIZE);
     }
 
     ~EthernetAlexaDevice()
@@ -24,7 +28,7 @@ public:
 
     void setName(const char *name)
     {
-        this->name = name;
+        strncpy(this->name, name, ALEXA_DEVICE_NAME_SIZE);
     }
 
     uint8_t getId()

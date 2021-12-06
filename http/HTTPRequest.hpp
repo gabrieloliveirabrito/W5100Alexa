@@ -1,8 +1,9 @@
 #ifndef ALEXA_HTTP_REQUEST
 #define ALEXA_HTTP_REQUEST
+#endif
 
 #ifndef ALEXA_MAX_REQUEST_HEADERS
-#define ALEXA_MAX_REQUEST_HEADERS 15
+#define ALEXA_MAX_REQUEST_HEADERS 5
 #endif
 
 #ifndef ALEXA_MAX_METHOD_SIZE
@@ -15,7 +16,6 @@
 
 #ifndef ALEXA_MAX_BODY_SIZE
 #define ALEXA_MAX_BODY_SIZE 256
-#endif
 
 #include "HTTPHeader.hpp"
 
@@ -25,55 +25,30 @@ private:
     HTTPHeader headers[ALEXA_MAX_REQUEST_HEADERS];
     int headerCount = 0;
 
-    char *method;//[ALEXA_MAX_METHOD_SIZE];
-    char *path;//[ALEXA_MAX_PATH_SIZE];
-    char *body;//[ALEXA_MAX_BODY_SIZE];
+    char method[ALEXA_MAX_METHOD_SIZE];
+    char path[ALEXA_MAX_PATH_SIZE];
+    char body[ALEXA_MAX_BODY_SIZE];
 
 public:
     HTTPRequest()
-    {
-        method = (char*)malloc(sizeof(char) * ALEXA_MAX_METHOD_SIZE);
-        path = (char*)malloc(sizeof(char) * ALEXA_MAX_PATH_SIZE);
-        body = (char*)malloc(sizeof(char) * ALEXA_MAX_BODY_SIZE);
-
-        clear();
-    }
-
-    void clear()
     {
         method[0] = '\0';
         path[0] = '\0';
         body[0] = '\0';
     }
 
-    const char *getMethod()
+    ~HTTPRequest()
     {
-        return method;
+        //Serial.println("Disposing HTTPRequest");
+        dispose();
     }
 
-    void setMethod(const char *method)
+    void dispose()
     {
-        strncpy(this->method, method, ALEXA_MAX_METHOD_SIZE);
-    }
-
-    const char *getPath()
-    {
-        return path;
-    }
-
-    void setPath(const char *path)
-    {
-        strncpy(this->path, path, ALEXA_MAX_PATH_SIZE);
-    }
-
-    const char *getBody()
-    {
-        return body;
-    }
-
-    void setBody(const char *body)
-    {
-        strncpy(this->body, body, ALEXA_MAX_BODY_SIZE);
+        method[0] = '\0';
+        path[0] = '\0';
+        body[0] = '\0';
+        headerCount = 0;
     }
 
     int getHeaderCount()
@@ -81,48 +56,10 @@ public:
         return headerCount;
     }
 
-    void addHeader(const char *headerLine)
-    {
-        if (strstr(headerLine, "HTTP/") == 0)
-            return;
-
-        char name[ALEXA_HTTP_HEADER_NAME_SIZE];
-        char value[ALEXA_HTTP_HEADER_VALUE_SIZE];
-        
-        bool valid = false;
-        int pos = 0;
-
-        for (int i = 0, n = strlen(headerLine); i < n; i++)
-        {
-            char c = headerLine[i];
-            if (valid)
-            {
-                value[pos++] = c;
-            }
-            else if (c == ':')
-            {
-                valid = true;
-                name[pos] = '\0';
-                pos = 0;
-            }
-            else if (!isspace(c))
-            {
-                name[pos++] = c;
-            }
-        }
-        value[pos] = '\0';
-
-        if (valid)
-            setHeader(name, value);
-    }
-
-    void setHeader(char *name, char* value)
+    void setHeader(const char *name, const char *value)
     {
         if (name == nullptr || value == nullptr)
-        {
-            Serial.println("NAME OR VALUE NULL!");
             return;
-        }
 
         for (int i = 0; i < headerCount; i++)
         {
@@ -162,6 +99,36 @@ public:
             return nullptr;
         else
             return &headers[position];
+    }
+
+    const char *getMethod()
+    {
+        return method;
+    }
+
+    void setMethod(char method[], int len)
+    {
+        strncpy(this->method, method, len);
+    }
+
+    const char *getPath()
+    {
+        return path;
+    }
+
+    void setPath(char path[], int len)
+    {
+        strncpy(this->path, path, len);
+    }
+
+    const char *getBody()
+    {
+        return body;
+    }
+
+    void setBody(char body[], int len)
+    {
+        strncpy(this->body, body, len);
     }
 };
 

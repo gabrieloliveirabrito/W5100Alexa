@@ -26,10 +26,10 @@ public:
         return "/description.xml";
     }
 
-    void execute(HTTPRequest request, HTTPResponse &response)
+    void execute(HTTPRequest *request, HTTPResponse *response)
     {
         IPAddress localIP = alexa->getLocalIP();
-        const char *escapedMac = alexa->getEscapedMac();
+        char *escapedMac = alexa->getEscapedMac();
 
         char s[16];
         sprintf(s, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
@@ -37,9 +37,9 @@ public:
         char buf[1024];
         sprintf_P(buf, DESCRIPTION_XML, s, s, escapedMac, escapedMac);
 
-        response.setStatusCode(OK);
-        response.setHeader("Content-Type", "text/xml");
-        response.setBody(buf);
+        response->setStatusCode(OK);
+        response->setHeader("Content-Type", "text/xml");
+        response->setBody(buf);
     }
 };
 

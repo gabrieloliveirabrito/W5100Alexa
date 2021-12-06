@@ -31,13 +31,15 @@ public:
         return "/";
     }
 
-    void execute(HTTPRequest request, HTTPResponse &response)
+    void execute(HTTPRequest *request, HTTPResponse *response)
     {
-        Serial.println("Index called!");
+        Serial.println("Executando!");
+        // char buf[1024];
+        // sprintf_P(buf, BODY_HTML, alexa->getDeviceCount(), alexa->isConnected() ? "true" : "false");
 
-        response.setStatusCode(OK);
-        response.setHeader("Content-Type", "text/html");
-        //response.setBody(buf);
+        response->setStatusCode(OK);
+        response->setHeader("Content-Type", "text/html");
+        response->setBody("<h1>oi</h1>");
     }
 };
 

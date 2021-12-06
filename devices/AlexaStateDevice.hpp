@@ -10,7 +10,7 @@ private:
     bool state;
 
 public:
-    AlexaStateDevice(const char *name) : EthernetAlexaDevice(name)
+    AlexaStateDevice(char *name) : EthernetAlexaDevice(name)
     {
     }
 
@@ -40,7 +40,7 @@ public:
 
     const char *getJson()
     {
-        char *buffer = (char *)malloc(strlen(DEVICE_JSON_TEMPLATE) + 64);
+        char buffer[strlen_P(DEVICE_JSON_TEMPLATE) + 64];
         snprintf_P(buffer, sizeof(buffer), DEVICE_SHORT_JSON_TEMPLATE, getName(), getModelId(), state ? "true" : "false");
 
         return buffer;

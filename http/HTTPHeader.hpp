@@ -22,17 +22,23 @@ private:
 public:
     HTTPHeader()
     {
-        clear();
+        name[0] = '\0';
+        value[0] = '\0';
     }
 
     HTTPHeader(const char *name, const char *value)
     {
-        // strncpy(this->name, name, ALEXA_HTTP_HEADER_NAME_SIZE);
-        // strncpy(this->value, value, ALEXA_HTTP_HEADER_VALUE_SIZE);
-        clear();
+        strncpy(this->name, name, ALEXA_HTTP_HEADER_NAME_SIZE);
+        strncpy(this->value, value, ALEXA_HTTP_HEADER_VALUE_SIZE);
     }
 
-    void clear()
+    ~HTTPHeader()
+    {
+        //Serial.println("Disposing HTTPHeader");
+        dispose();
+    }
+
+    void dispose()
     {
         name[0] = '\0';
         value[0] = '\0';
@@ -45,7 +51,10 @@ public:
 
     void setName(const char *name)
     {
-        //strncpy(this->name, name, ALEXA_HTTP_HEADER_NAME_SIZE);
+        char str[sizeof(char) * ALEXA_HTTP_HEADER_NAME_SIZE];
+        strncpy(str, name, strlen(name));
+
+        strncpy(this->name, str, strlen(name));
     }
 
     const char *getValue()
@@ -55,7 +64,10 @@ public:
 
     void setValue(const char *value)
     {
-        //strncpy(this->value, value, ALEXA_HTTP_HEADER_VALUE_SIZE);
+        char str[sizeof(char) * ALEXA_HTTP_HEADER_VALUE_SIZE];
+        strncpy(str, value, ALEXA_HTTP_HEADER_VALUE_SIZE);
+
+        strncpy(this->value, str, ALEXA_HTTP_HEADER_VALUE_SIZE);
     }
 };
 

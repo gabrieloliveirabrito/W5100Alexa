@@ -35,13 +35,13 @@ public:
     void setDiscoverable(bool discoverable);
 
     IPAddress getLocalIP();
-    const char *getEscapedMac();
+    char *getEscapedMac();
 
     uint8_t getDeviceCount();
-    uint8_t getDeviceId(const char *device_name);
+    uint8_t getDeviceId(char *device_name);
     EthernetAlexaDevice *getDevice(uint8_t id);
     uint8_t addDevice(EthernetAlexaDevice *device);
-    void renameDevice(uint8_t id, const char *device_name);
+    void renameDevice(uint8_t id, char *device_name);
 };
 
 #endif

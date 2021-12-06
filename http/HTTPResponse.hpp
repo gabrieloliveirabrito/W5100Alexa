@@ -6,7 +6,7 @@
 #endif
 
 #ifndef ALEXA_MAX_BODY_LENGTH
-#define ALEXA_MAX_BODY_LENGTH 256
+#define ALEXA_MAX_BODY_LENGTH 512
 #endif
 
 #include "HTTPHeader.hpp"
@@ -17,21 +17,26 @@ class HTTPResponse
 private:
     HTTPHeader headers[ALEXA_MAX_RESPONSE_HEADERS];
     int headerCount = 0;
-    char body[ALEXA_MAX_BODY_SIZE];
-    HTTPStatusCode statusCode;
+    char body[ALEXA_MAX_BODY_LENGTH];
+    HTTPStatusCode statusCode = NotImplemented;
 
 public:
     HTTPResponse()
     {
-        clear();
-        //setHeader("Content-Type", "text/plain");
+        body[0] = '\0';
+        setHeader("Content-Type", "text/plain");
     }
 
-    void clear()
+    ~HTTPResponse()
+    {
+        //Serial.println("Disposing HTTPResponse");
+        dispose();
+    }
+
+    void dispose()
     {
         body[0] = '\0';
         headerCount = 0;
-        statusCode = NotImplemented;
     }
 
     int getHeaderCount()
@@ -91,6 +96,9 @@ public:
 
     void setBody(const char *body)
     {
+        // char str[ALEXA_MAX_BODY_LENGTH];
+        // strncpy(str, body, ALEXA_MAX_BODY_LENGTH);
+        // strncpy(this->body, str, ALEXA_MAX_BODY_LENGTH);
         strncpy(this->body, body, ALEXA_MAX_BODY_LENGTH);
     }
 

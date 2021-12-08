@@ -1,12 +1,12 @@
-#ifndef ALEXA_HTTP_RESPONSE
-#define ALEXA_HTTP_RESPONSE
+#ifndef HTTP_RESPONSE
+#define HTTP_RESPONSE
 
-#ifndef ALEXA_MAX_RESPONSE_HEADERS
-#define ALEXA_MAX_RESPONSE_HEADERS 10
+#ifndef HTTP_MAX_RESPONSE_HEADERS
+#define HTTP_MAX_RESPONSE_HEADERS 10
 #endif
 
-#ifndef ALEXA_MAX_BODY_LENGTH
-#define ALEXA_MAX_BODY_LENGTH 512
+#ifndef HTTP_MAX_BODY_LENGTH
+#define HTTP_MAX_BODY_LENGTH 512
 #endif
 
 #include "HTTPHeader.hpp"
@@ -15,9 +15,9 @@
 class HTTPResponse
 {
 private:
-    HTTPHeader headers[ALEXA_MAX_RESPONSE_HEADERS];
+    HTTPHeader headers[HTTP_MAX_RESPONSE_HEADERS];
     int headerCount = 0;
-    char body[ALEXA_MAX_BODY_LENGTH];
+    char body[HTTP_MAX_BODY_LENGTH];
     HTTPStatusCode statusCode = NotImplemented;
 
 public:
@@ -60,7 +60,7 @@ public:
             }
         }
 
-        if (headerCount <= ALEXA_MAX_RESPONSE_HEADERS)
+        if (headerCount <= HTTP_MAX_RESPONSE_HEADERS)
             headers[headerCount++] = HTTPHeader(name, value);
     }
 
@@ -83,7 +83,7 @@ public:
 
     HTTPHeader *getHeader(uint8_t position)
     {
-        if (position >= ALEXA_MAX_RESPONSE_HEADERS)
+        if (position >= HTTP_MAX_RESPONSE_HEADERS)
             return nullptr;
         else
             return &headers[position];
@@ -96,10 +96,10 @@ public:
 
     void setBody(const char *body)
     {
-        // char str[ALEXA_MAX_BODY_LENGTH];
-        // strncpy(str, body, ALEXA_MAX_BODY_LENGTH);
-        // strncpy(this->body, str, ALEXA_MAX_BODY_LENGTH);
-        strncpy(this->body, body, ALEXA_MAX_BODY_LENGTH);
+        // char str[HTTP_MAX_BODY_LENGTH];
+        // strncpy(str, body, HTTP_MAX_BODY_LENGTH);
+        // strncpy(this->body, str, HTTP_MAX_BODY_LENGTH);
+        strncpy(this->body, body, HTTP_MAX_BODY_LENGTH);
     }
 
     HTTPStatusCode getStatusCode()

@@ -1,37 +1,40 @@
-#ifndef ALEXA_HTTP_REQUEST
-#define ALEXA_HTTP_REQUEST
+#ifndef HTTP_REQUEST
+#define HTTP_REQUEST
 #endif
 
-#ifndef ALEXA_MAX_REQUEST_HEADERS
-#define ALEXA_MAX_REQUEST_HEADERS 5
+#ifndef HTTP_MAX_REQUEST_HEADERS
+#define HTTP_MAX_REQUEST_HEADERS 5
 #endif
 
-#ifndef ALEXA_MAX_METHOD_SIZE
-#define ALEXA_MAX_METHOD_SIZE 12
+#ifndef HTTP_MAX_METHOD_SIZE
+#define HTTP_MAX_METHOD_SIZE 12
 #endif
 
-#ifndef ALEXA_MAX_PATH_SIZE
-#define ALEXA_MAX_PATH_SIZE 64
+#ifndef HTTP_MAX_PATH_SIZE
+#define HTTP_MAX_PATH_SIZE 64
 #endif
 
-#ifndef ALEXA_MAX_BODY_SIZE
-#define ALEXA_MAX_BODY_SIZE 256
+#ifndef HTTP_MAX_BODY_SIZE
+#define HTTP_MAX_BODY_SIZE 512
 
 #include "HTTPHeader.hpp"
 
 class HTTPRequest
 {
 private:
-    HTTPHeader headers[ALEXA_MAX_REQUEST_HEADERS];
+    HTTPHeader headers[HTTP_MAX_REQUEST_HEADERS];
     int headerCount = 0;
+    bool headersRequired = true;
 
-    char method[ALEXA_MAX_METHOD_SIZE];
-    char path[ALEXA_MAX_PATH_SIZE];
-    char body[ALEXA_MAX_BODY_SIZE];
+    char method[HTTP_MAX_METHOD_SIZE];
+    char path[HTTP_MAX_PATH_SIZE];
+    char body[HTTP_MAX_BODY_SIZE];
 
 public:
-    HTTPRequest()
+    HTTPRequest(bool headersRequired = true)
     {
+        this->headersRequired = headersRequired;
+
         method[0] = '\0';
         path[0] = '\0';
         body[0] = '\0';
@@ -49,6 +52,11 @@ public:
         path[0] = '\0';
         body[0] = '\0';
         headerCount = 0;
+    }
+
+    bool isHeadersRequired()
+    {
+        return headersRequired;
     }
 
     int getHeaderCount()
@@ -72,7 +80,7 @@ public:
             }
         }
 
-        if (headerCount <= ALEXA_MAX_REQUEST_HEADERS)
+        if (headerCount <= HTTP_MAX_REQUEST_HEADERS)
             headers[headerCount++] = HTTPHeader(name, value);
     }
 
@@ -95,7 +103,7 @@ public:
 
     HTTPHeader *getHeader(uint8_t position)
     {
-        if (position >= ALEXA_MAX_REQUEST_HEADERS)
+        if (position >= HTTP_MAX_REQUEST_HEADERS)
             return nullptr;
         else
             return &headers[position];
@@ -104,6 +112,11 @@ public:
     const char *getMethod()
     {
         return method;
+    }
+
+    void setMethod(char method[])
+    {
+        setMethod(method, HTTP_MAX_METHOD_SIZE);
     }
 
     void setMethod(char method[], int len)
@@ -116,6 +129,11 @@ public:
         return path;
     }
 
+    void setPath(char path[])
+    {
+        setPath(path, HTTP_MAX_PATH_SIZE);
+    }
+
     void setPath(char path[], int len)
     {
         strncpy(this->path, path, len);
@@ -124,6 +142,11 @@ public:
     const char *getBody()
     {
         return body;
+    }
+
+    void setBody(char body[])
+    {
+        setBody(body, HTTP_MAX_BODY_SIZE);
     }
 
     void setBody(char body[], int len)

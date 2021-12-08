@@ -1,9 +1,5 @@
-#ifndef ALEXA_HTTP_SERVER
-#define ALEXA_HTTP_SERVER
-
-#ifndef HTTP_MAX_REQUEST
-#define HTTP_MAX_REQUEST 150
-#endif
+#ifndef HTTP_SERVER
+#define HTTP_SERVER
 
 #ifndef HTTP_MAX_BODY
 #define HTTP_MAX_BODY 1024
@@ -26,23 +22,7 @@ private:
     int port;
     char requestBody[HTTP_MAX_BODY];
     uint8_t requestReceived = 0;
-    char headerName[ALEXA_HTTP_HEADER_NAME_SIZE];
-
-    const char *getStatusMessage(HTTPStatusCode code)
-    {
-        switch (code)
-        {
-        case OK:
-            return "200 OK";
-        case BadRequest:
-            return "400 Bad Request";
-        case NotFound:
-            return "404 Not Found";
-        case NotImplemented:
-        default:
-            return "501 Not implemented";
-        }
-    }
+    char headerName[HTTP_HEADER_NAME_SIZE];
 
     bool readRequest(EthernetClient *client, HTTPRequest *request, HTTPCallback *&callback)
     {
@@ -106,12 +86,9 @@ private:
             }
             else if (body)
             {
-                if (found)
-                {
                     requestBody[requestReceived++] = c;
-                }
             }
-            else if (c == ':' && found)
+            else if (c == ':')
             {
                 requestBody[requestReceived++] = '\0';
                 if (callback->isHeaderRequired(requestBody))
@@ -225,6 +202,8 @@ public:
             Serial.println(response.getStatusCode(), DEC);
             const char *statusMessage = getStatusMessage(response.getStatusCode());
             client.print("HTTP/1.1 ");
+            client.print(response.getStatusCode(), DEC);
+            client.print(' ');
             client.println(statusMessage);
             client.println("Connection: close");
 

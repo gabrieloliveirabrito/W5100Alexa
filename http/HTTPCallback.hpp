@@ -13,27 +13,27 @@ public:
 
     virtual void dispose()
     {
-        //Serial.println("Disposing callback!");
     }
 
     virtual bool compare(HTTPRequest request)
     {
-        Serial.print(getMethod());
-        Serial.print(" <=> ");
-        Serial.print(request.getMethod());
-        Serial.print(" = ");
-        Serial.println(strcmp(getMethod(), request.getMethod()), DEC);
+        DEBUG_PRINT(getMethod());
+        DEBUG_PRINT(" <=> ");
+        DEBUG_PRINTLN(request.getMethod());
 
-        Serial.print(getPath());
-        Serial.print(" <=> ");
-        Serial.print(request.getPath());
-        Serial.print(" = ");
-        Serial.println(strcmp(getPath(), request.getPath()), DEC);
+        DEBUG_PRINT(getPath());
+        DEBUG_PRINT(" <=> ");
+        DEBUG_PRINTLN(request.getPath());
 
         return strcmp(getMethod(), request.getMethod()) == 0 && strcmp(getPath(), request.getPath()) == 0;
     }
 
     virtual bool isHeaderRequired(const char *name)
+    {
+        return false;
+    }
+
+    virtual bool isBodyRequired()
     {
         return false;
     }

@@ -1,21 +1,5 @@
 #ifndef HTTP_REQUEST
 #define HTTP_REQUEST
-#endif
-
-#ifndef HTTP_MAX_REQUEST_HEADERS
-#define HTTP_MAX_REQUEST_HEADERS 5
-#endif
-
-#ifndef HTTP_MAX_METHOD_SIZE
-#define HTTP_MAX_METHOD_SIZE 12
-#endif
-
-#ifndef HTTP_MAX_PATH_SIZE
-#define HTTP_MAX_PATH_SIZE 64
-#endif
-
-#ifndef HTTP_MAX_BODY_SIZE
-#define HTTP_MAX_BODY_SIZE 512
 
 #include "HTTPHeader.hpp"
 
@@ -24,17 +8,15 @@ class HTTPRequest
 private:
     HTTPHeader headers[HTTP_MAX_REQUEST_HEADERS];
     int headerCount = 0;
-    bool headersRequired = true;
+    bool headersRequired = true, bodyRequired = false;
 
-    char method[HTTP_MAX_METHOD_SIZE];
-    char path[HTTP_MAX_PATH_SIZE];
-    char body[HTTP_MAX_BODY_SIZE];
+    char method[HTTP_MAX_METHOD_LENGTH];
+    char path[HTTP_MAX_PATH_LENGHT];
+    char body[HTTP_MAX_BODY_LENGTH];
 
 public:
-    HTTPRequest(bool headersRequired = true)
+    HTTPRequest()
     {
-        this->headersRequired = headersRequired;
-
         method[0] = '\0';
         path[0] = '\0';
         body[0] = '\0';
@@ -42,7 +24,6 @@ public:
 
     ~HTTPRequest()
     {
-        //Serial.println("Disposing HTTPRequest");
         dispose();
     }
 
@@ -59,6 +40,21 @@ public:
         return headersRequired;
     }
 
+    void setHeadersRequired(bool headersRequired)
+    {
+        this->headersRequired = headersRequired;
+    }
+
+    bool isBodyRequired()
+    {
+        return bodyRequired;
+    }
+
+    void setBodyRequired(bool bodyRequired)
+    {
+        this->bodyRequired = bodyRequired;
+    }
+
     int getHeaderCount()
     {
         return headerCount;
@@ -66,7 +62,7 @@ public:
 
     void setHeader(const char *name, const char *value)
     {
-        if (name == nullptr || value == nullptr)
+        if (name == nullptr || value == nullptr || !headersRequired)
             return;
 
         for (int i = 0; i < headerCount; i++)
@@ -116,7 +112,7 @@ public:
 
     void setMethod(char method[])
     {
-        setMethod(method, HTTP_MAX_METHOD_SIZE);
+        setMethod(method, HTTP_MAX_METHOD_LENGTH);
     }
 
     void setMethod(char method[], int len)
@@ -131,7 +127,7 @@ public:
 
     void setPath(char path[])
     {
-        setPath(path, HTTP_MAX_PATH_SIZE);
+        setPath(path, HTTP_MAX_PATH_LENGHT);
     }
 
     void setPath(char path[], int len)
@@ -146,11 +142,14 @@ public:
 
     void setBody(char body[])
     {
-        setBody(body, HTTP_MAX_BODY_SIZE);
+        setBody(body, HTTP_MAX_BODY_LENGTH);
     }
 
     void setBody(char body[], int len)
     {
+        if (!bodyRequired)
+            return;
+
         strncpy(this->body, body, len);
     }
 };

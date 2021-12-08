@@ -1,14 +1,6 @@
 #ifndef HTTP_SERVER
 #define HTTP_SERVER
 
-#ifndef HTTP_MAX_BODY
-#define HTTP_MAX_BODY 1024
-#endif
-
-#ifndef HTTP_MAX_CALLBACKS
-#define HTTP_MAX_CALLBACKS 10
-#endif
-
 #include <Ethernet.h>
 #include "HTTPCallback.hpp"
 
@@ -20,11 +12,11 @@ private:
     uint8_t callbackCount = 0;
 
     int port;
-    char requestBody[HTTP_MAX_BODY];
-    uint8_t requestReceived = 0;
-    char headerName[HTTP_HEADER_NAME_SIZE];
+    char requestBody[HTTP_MAX_BODY_LENGTH];
+    uint16_t requestReceived = 0;
+    char headerName[HTTP_HEADER_NAME_LENGTH];
 
-    bool readRequest(EthernetClient *client, HTTPRequest *request, HTTPCallback *&callback)
+    HTTPStatusCode readRequest(EthernetClient *client, HTTPRequest *request, HTTPCallback *&callback)
     {
         bool method = true, path = false, body = false;
         bool lb = true, found = false, headerRequired = false;
@@ -55,7 +47,7 @@ private:
             {
                 if (isspace(c))
                 {
-                    Serial.println("Path found!");
+                    DEBUG_PRINTLN("Path found!");
                     path = false;
 
                     requestBody[requestReceived++] = '\0';
@@ -66,6 +58,8 @@ private:
                         if (callbacks[i] != nullptr && callbacks[i]->compare(*request))
                         {
                             callback = callbacks[i];
+                            request->setBodyRequired(callback->isBodyRequired());
+
                             found = true;
                             break;
                         }
@@ -73,8 +67,8 @@ private:
 
                     if (!found)
                     {
-                        Serial.println("Failed to fetch a callback!");
-                        return false;
+                        DEBUG_PRINTLN("Failed to fetch a callback!");
+                        return NotFound;
                     }
 
                     requestReceived = 0;
@@ -86,7 +80,7 @@ private:
             }
             else if (body)
             {
-                    requestBody[requestReceived++] = c;
+                requestBody[requestReceived++] = c;
             }
             else if (c == ':')
             {
@@ -98,18 +92,21 @@ private:
                 }
                 else
                 {
-                    Serial.print("Header ");
-                    Serial.print(requestBody);
-                    Serial.println(" is not required!");
+                    DEBUG_PRINT("Header ");
+                    DEBUG_PRINT(requestBody);
+                    DEBUG_PRINTLN(" is not required!");
                 }
                 requestReceived = 0;
             }
             else if (c == '\n')
             {
-                Serial.println();
+                DEBUG_PRINTLN();
                 if (lb)
                 {
-                    body = true;
+                    if (request->isBodyRequired())
+                        body = true;
+                    else
+                        break;
                 }
                 else
                 {
@@ -118,12 +115,9 @@ private:
                     if (headerRequired)
                     {
                         headerRequired = false;
+                        requestBody[requestReceived++] = '\0';
 
-                        if (requestReceived > 0)
-                        {
-                            requestBody[requestReceived++] = '\0';
-                            request->setHeader(headerName, requestBody);
-                        }
+                        request->setHeader(headerName, requestBody);
                     }
                 }
                 requestReceived = 0;
@@ -131,18 +125,25 @@ private:
             else if (c != '\r')
             {
                 if (requestReceived > 0 || !isspace(c))
+                {
+                    if (requestReceived >= HTTP_HEADER_NAME_LENGTH)
+                    {
+                        return RequestHeaderFieldsTooLarge;
+                    }
+
                     requestBody[requestReceived++] = c;
+                }
                 lb = false;
             }
         }
 
-        if (found && requestReceived > 0)
+        if (found && requestReceived > 0 && request->isBodyRequired())
         {
             requestBody[requestReceived++] = '\0';
             request->setBody(requestBody, requestReceived);
         }
 
-        return found;
+        return OK;
     }
 
 public:
@@ -155,6 +156,10 @@ public:
 
     void begin()
     {
+#ifdef HTTP_DEBUG_PIN
+        pinMode(HTTP_DEBUG_PIN, OUTPUT);
+        digitalWrite(HTTP_DEBUG_PIN, LOW);
+#endif
         this->server->begin();
     }
 
@@ -164,43 +169,49 @@ public:
 
         if (client)
         {
+#ifdef HTTP_DEBUG_PIN
+            digitalWrite(HTTP_DEBUG_PIN, HIGH);
+#endif
             HTTPRequest request;
-            HTTPResponse response;
+            HTTPResponse response(true);
             HTTPCallback *callback;
 
             requestReceived = 0;
             requestBody[0] = '\0';
 
-            Serial.print("Client ");
+            DEBUG_PRINT("Client ");
+#ifdef HTTP_DEBUG
             client.remoteIP().printTo(Serial);
-            Serial.println(" connected!");
+#endif
+            DEBUG_PRINTLN(" connected!");
 
-            Serial.println("-------- BEGIN OF REQUEST --------");
-            bool result = readRequest(&client, &request, callback);
+            DEBUG_PRINTLN("-------- BEGIN OF REQUEST --------");
+            HTTPStatusCode statusCode = readRequest(&client, &request, callback);
 
-            if (result)
+            DEBUG_PRINT("Status: ");
+            const char *statusMessage = getStatusMessage(response.getStatusCode());
+            DEBUG_PRINTLN(statusMessage);
+
+            if (statusCode == OK)
             {
-                Serial.println(request.getMethod());
-                Serial.println(request.getPath());
-                Serial.println(request.getBody());
+                DEBUG_PRINTLN(request.getMethod());
+                DEBUG_PRINTLN(request.getPath());
+                DEBUG_PRINTLN(request.getBody());
             }
-            else
-                Serial.println("Not Found!");
 
-            if (result && callback != nullptr)
+            if (statusCode == OK && callback != nullptr)
             {
-                Serial.println("Executing Callback!");
+                DEBUG_PRINTLN("Executing Callback!");
 
                 callback->execute(&request, &response);
             }
             else
             {
-                response.setStatusCode(NotFound);
+                response.setStatusCode(statusCode);
             }
-            Serial.println("-------- FINAL OF REQUEST --------");
 
-            Serial.println(response.getStatusCode(), DEC);
-            const char *statusMessage = getStatusMessage(response.getStatusCode());
+            DEBUG_PRINTLN("-------- FINAL OF REQUEST --------");
+
             client.print("HTTP/1.1 ");
             client.print(response.getStatusCode(), DEC);
             client.print(' ');
@@ -226,12 +237,16 @@ public:
             }
             client.println();
 
-            Serial.println("Client disconnected!");
+            DEBUG_PRINTLN("Client disconnected!");
             client.flush();
             client.stop();
 
             response.dispose();
             request.dispose();
+
+#ifdef HTTP_DEBUG_PIN
+            digitalWrite(HTTP_DEBUG_PIN, LOW);
+#endif
         }
         delay(10);
     }

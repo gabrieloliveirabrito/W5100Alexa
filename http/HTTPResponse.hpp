@@ -1,14 +1,6 @@
 #ifndef HTTP_RESPONSE
 #define HTTP_RESPONSE
 
-#ifndef HTTP_MAX_RESPONSE_HEADERS
-#define HTTP_MAX_RESPONSE_HEADERS 10
-#endif
-
-#ifndef HTTP_MAX_BODY_LENGTH
-#define HTTP_MAX_BODY_LENGTH 512
-#endif
-
 #include "HTTPHeader.hpp"
 #include "HTTPStatusCode.h"
 
@@ -21,15 +13,16 @@ private:
     HTTPStatusCode statusCode = NotImplemented;
 
 public:
-    HTTPResponse()
+    HTTPResponse(bool isServer = false)
     {
         body[0] = '\0';
-        setHeader("Content-Type", "text/plain");
+
+        if (isServer)
+            setHeader("Content-Type", "text/plain");
     }
 
     ~HTTPResponse()
     {
-        //Serial.println("Disposing HTTPResponse");
         dispose();
     }
 
@@ -60,7 +53,7 @@ public:
             }
         }
 
-        if (headerCount <= HTTP_MAX_RESPONSE_HEADERS)
+        if (headerCount < HTTP_MAX_RESPONSE_HEADERS)
             headers[headerCount++] = HTTPHeader(name, value);
     }
 

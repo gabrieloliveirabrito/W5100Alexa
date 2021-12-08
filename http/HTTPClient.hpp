@@ -1,14 +1,6 @@
 #ifndef HTTP_CLIENT
 #define HTTP_CLIENT
 
-#ifndef HTTP_MAX_BODY
-#define HTTP_MAX_BODY 2048
-#endif
-
-#ifndef HTTP_MAX_CALLBACKS
-#define HTTP_MAX_CALLBACKS 10
-#endif
-
 #include <Ethernet.h>
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
@@ -20,27 +12,27 @@ private:
     IPAddress ip;
     int port;
 
-    char requestBody[HTTP_MAX_BODY];
-    uint8_t requestReceived = 0;
-    char headerName[HTTP_HEADER_NAME_SIZE];
+    char requestBody[HTTP_MAX_BODY_LENGTH];
+    uint16_t requestReceived = 0;
+    char headerName[HTTP_HEADER_NAME_LENGTH];
 
     bool fetchResponse(EthernetClient *client, HTTPRequest *request, HTTPResponse *response)
     {
         bool name = false, status = false, body = false;
-        bool lb = true, version = true;
+        bool lb = true, version = true, header = false;
+        bool readBody = true;
 
         requestReceived = 0;
         requestBody[0] = '\0';
         headerName[0] = '\0';
 
-        Serial.println("--------- BEGIN OF RESPONSE ---------");
+        DEBUG_PRINTLN("--------- BEGIN OF RESPONSE ---------");
         while (client->connected() && !client->available())
             delay(1);
 
         while (client->available())
         {
             char c = client->read();
-            Serial.write(c);
 
             if (version)
             {
@@ -48,8 +40,8 @@ private:
                 {
                     requestBody[requestReceived++] = '\0';
 
-                    Serial.print("HTTP Version: ");
-                    Serial.println(requestBody);
+                    DEBUG_PRINT("HTTP Version: ");
+                    DEBUG_PRINTLN(requestBody);
 
                     if (strncmp(requestBody, "HTTP/", 5) == 0)
                     {
@@ -74,8 +66,8 @@ private:
                 {
                     requestBody[requestReceived++] = '\0';
 
-                    Serial.print("Status Received: ");
-                    Serial.println(requestBody);
+                    DEBUG_PRINT("Status Received: ");
+                    DEBUG_PRINTLN(requestBody);
                     int statusCode = atoi(requestBody);
 
                     response->setStatusCode((HTTPStatusCode)statusCode);
@@ -93,8 +85,8 @@ private:
                 }
                 else if (!isdigit(c))
                 {
-                    Serial.print(c);
-                    Serial.println(" IS NOT A DIGIT!");
+                    DEBUG_PRINT(c);
+                    DEBUG_PRINTLN(" IS NOT A DIGIT!");
                     return false;
                 }
                 else
@@ -108,12 +100,12 @@ private:
                 {
                     continue;
                 }
-                else if (c == '\r')
+                else if (c == '\n')
                 {
                     requestBody[requestReceived++] = '\0';
 
-                    Serial.print("Status Name: ");
-                    Serial.println(requestBody);
+                    DEBUG_PRINT("Status Name: ");
+                    DEBUG_PRINTLN(requestBody);
 
                     requestReceived = 0;
                     name = false;
@@ -125,47 +117,80 @@ private:
             }
             else if (body)
             {
+                if (requestReceived % 30 == 0 && requestReceived > 0)
+                    DEBUG_PRINTLN();
+                else if (requestReceived > 0)
+                    DEBUG_PRINT(" ");
                 requestBody[requestReceived++] = c;
+
+                if (requestReceived > HTTP_MAX_BODY_LENGTH)
+                {
+                    DEBUG_PRINTLN("MAX REACHED!");
+                    requestBody[requestReceived++] = '\0';
+                    break; //Server response huge than buffer
+                }
             }
-            else if (c == ':')
+            else if (!header && c == ':')
             {
                 requestBody[requestReceived++] = '\0';
-                if (request->isHeadersRequired())
-                {
-                }
-                else
-                {
-                }
+                strncpy(headerName, requestBody, requestReceived);
+                header = true;
+
                 requestReceived = 0;
             }
             else if (c == '\n')
             {
                 if (lb)
                 {
-                    body = true;
+                    requestBody[requestReceived++] = '\0';
+                    requestReceived = 0;
+
+                    if (request->isBodyRequired())
+                    {
+                        body = true;
+                        DEBUG_PRINTLN("To Body!");
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
                 else
                 {
                     requestBody[requestReceived++] = '\0';
-                    Serial.print("Header: ");
-                    Serial.println(requestBody);
+                    requestReceived = 0;
+
+                    if (header)
+                    {
+                        header = false;
+
+                        if (request->isHeadersRequired())
+                        {
+                            DEBUG_PRINTLN("Appending header");
+                            response->setHeader(headerName, requestBody);
+                        }
+
+                        // if (strcmp(headerName, "Content-Length") == 0)
+                        // {
+                        //     request->setBodyRequired(false);
+                        // }
+                    }
 
                     lb = true;
                 }
-                requestReceived = 0;
             }
             else if (c != '\r')
             {
-                Serial.print(c);
                 if (requestReceived > 0 || !isspace(c))
                     requestBody[requestReceived++] = c;
                 lb = false;
             }
         }
-        Serial.println("--------- FINAL OF RESPONSE ---------");
+        DEBUG_PRINTLN("--------- FINAL OF RESPONSE ---------");
 
-        if (requestReceived > 0)
+        if (requestReceived > 0 && request->isBodyRequired())
         {
+            DEBUG_PRINTLN("Putting the rest of data on body");
             requestBody[requestReceived++] = '\0';
             response->setBody(requestBody);
         }
@@ -176,6 +201,10 @@ private:
 public:
     HTTPClient(IPAddress ip, int port = 80)
     {
+#ifdef HTTP_DEBUG_PIN
+        pinMode(HTTP_DEBUG_PIN, OUTPUT);
+        digitalWrite(HTTP_DEBUG_PIN, LOW);
+#endif
         this->host = nullptr;
         this->ip = ip;
         this->port = port;
@@ -189,26 +218,32 @@ public:
 
     HTTPResponse send(HTTPRequest *request)
     {
+#ifdef HTTP_DEBUG_PIN
+        digitalWrite(HTTP_DEBUG_PIN, HIGH);
+#endif
+
         EthernetClient client;
         HTTPResponse response;
-        Serial.print("Connecting to ");
+        DEBUG_PRINT("Connecting to ");
 
         int connRes = 0;
         if (host == nullptr)
         {
+#ifdef HTTP_DEBUG
             ip.printTo(Serial);
-            Serial.println();
+#endif
             connRes = client.connect(ip, port);
         }
         else
         {
-            Serial.println(host);
+            DEBUG_PRINT(host);
             connRes = client.connect(host, port);
         }
+        DEBUG_PRINT("....");
 
         if (connRes == 1)
         {
-            Serial.println("Connected, requesting");
+            DEBUG_PRINTLN("Connected, requesting");
 
             client.print(request->getMethod());
             client.print(" ");
@@ -233,13 +268,15 @@ public:
         }
         else
         {
-            Serial.print(connRes, DEC);
-            Serial.println(" Failed to connect!");
+            DEBUG_PRINTLN("Failed to connect to the server!");
         }
 
         if (client.connected())
             client.stop();
 
+#ifdef HTTP_DEBUG_PIN
+        digitalWrite(HTTP_DEBUG_PIN, LOW);
+#endif
         return response;
     }
 };

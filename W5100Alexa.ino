@@ -2,9 +2,13 @@
 #include <Arduino.h>
 #endif
 
-#include "http/HTTPClient.hpp"
+#define HTTP_DEBUG
+#define HTTP_DEBUG_PIN 10
+#define ALEXA_DEBUG_PIN 9
 
+#include "http/HTTPClient.hpp"
 #include "EthernetAlexa.h"
+
 byte mac[] = {0xFC, 0xA2, 0xDA, 0xBE, 0xE1, 0x03};
 IPAddress addr(192, 168, 1, 117);
 IPAddress dns(189, 36, 151, 26);
@@ -20,6 +24,9 @@ void setup()
         delay(10);
 
     pinMode(8, INPUT);
+    pinMode(9, OUTPUT);
+    digitalWrite(9, HIGH);
+
     Serial.println("Serial loaded, waiting for Ethernet...");
     Ethernet.begin(mac, addr, dns, gateway, subnet);
     Serial.println("Ethernet Shield initialized!");
@@ -41,18 +48,38 @@ void loop()
     else
     {
         int readed = digitalRead(8);
-        if (readed != state)
-            Serial.println(readed, DEC);
-
         if (readed == HIGH && state != readed)
         {
             HTTPRequest request;
-            request.setPath("/");
+            request.setBodyRequired(true);
+            request.setHeadersRequired(false);
+
+            request.setPath("/get");
             request.setMethod("GET");
 
             HTTPResponse response = client.send(&request);
             Serial.print("Status: ");
             Serial.println(response.getStatusCode(), DEC);
+
+            if (response.getStatusCode() == OK)
+            {
+                int hc = response.getHeaderCount();
+                Serial.print("Headers: ");
+                Serial.println(hc, DEC);
+
+                for (int i = 0; i < hc; i++)
+                {
+                    HTTPHeader *header = response.getHeader(i);
+                    Serial.print(header->getName());
+                    Serial.print(" : ");
+                    Serial.println(header->getValue());
+                }
+
+                const char *body = response.getBody();
+                Serial.print("Body: ");
+                Serial.println(strlen(body), DEC);
+                Serial.println(body);
+            }
             delay(1000);
         }
         state = readed;

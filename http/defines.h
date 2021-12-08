@@ -1,0 +1,56 @@
+#ifndef HTTP_DEFINES
+#define HTTP_DEFINES
+
+#ifndef HTTP_MAX_CALLBACKS
+#define HTTP_MAX_CALLBACKS 10
+#endif
+
+#ifndef HTTP_MAX_REQUEST_HEADERS
+#define HTTP_MAX_REQUEST_HEADERS 5
+#endif
+
+#ifndef HTTP_MAX_RESPONSE_HEADERS
+#define HTTP_MAX_RESPONSE_HEADERS 5
+#endif
+
+#ifndef HTTP_HEADER_NAME_LENGTH
+#define HTTP_HEADER_NAME_LENGTH 32
+#endif
+
+#ifndef HTTP_HEADER_VALUE_LENGTH
+#define HTTP_HEADER_VALUE_LENGTH 128
+#endif
+
+#ifndef HTTP_HEADER_SIZE
+#define HTTP_HEADER_SIZE HTTP_HEADER_NAME_LENGTH + HTTP_HEADER_VALUE_LENGTH
+#endif
+
+#ifndef HTTP_MAX_METHOD_LENGTH
+#define HTTP_MAX_METHOD_LENGTH 12
+#endif
+
+#ifndef HTTP_MAX_PATH_LENGHT
+#define HTTP_MAX_PATH_LENGHT 64
+#endif
+
+#ifndef HTTP_MAX_BODY_LENGTH
+#define HTTP_MAX_BODY_LENGTH 1024
+#endif
+
+#ifndef DEBUG_PRINT
+#ifdef HTTP_DEBUG
+#define DEBUG_PRINT(x) Serial.print(x)
+#else
+#define DEBUG_PRINT(x)
+#endif
+#endif
+
+#ifndef DEBUG_PRINTLN
+#ifdef HTTP_DEBUG
+#define DEBUG_PRINTLN(x) Serial.println(x)
+#else
+#define DEBUG_PRINTLN(x)
+#endif
+#endif
+
+#endif

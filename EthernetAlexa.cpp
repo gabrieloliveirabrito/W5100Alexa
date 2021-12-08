@@ -6,8 +6,10 @@ void httpR(HTTPRequest *request, HTTPResponse *response) {}
 
 bool EthernetAlexa::begin()
 {
-    pinMode(9, OUTPUT);
-
+#ifdef ALEXA_DEBUG_PIN
+    pinmode(ALEXA_DEBUG_PIN, OUTPUT);
+    digitalWrite(ALEXA_DEBUG_PIN, LOW);
+#endif
     ip = Ethernet.localIP();
     Ethernet.MACAddress(mac);
     sprintf(escapedMac, "FD-%x%x%x%x%x%x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -62,7 +64,9 @@ void EthernetAlexa::loop()
                 strstr(request, "upnp:rootd") != nullptr || strstr(request, "sspd:all") != nullptr ||
                 strstr(request, "asic:1") != nullptr || strstr(request, "ssdp:alive") != nullptr)
             {
-                digitalWrite(9, HIGH);
+#ifdef ALEXA_DEBUG_PIN
+                digitalWrite(ALEXA_DEBUG_PIN, HIGH);
+#endif
 
                 char s[16];
                 sprintf(s, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
@@ -75,7 +79,9 @@ void EthernetAlexa::loop()
                 udp->endPacket();
 
                 delay(200);
-                digitalWrite(9, LOW);
+#ifdef ALEXA_DEBUG_PIN
+                digitalWrite(ALEXA_DEBUG_PIN, LOW);
+#endif
             }
             else
             {
